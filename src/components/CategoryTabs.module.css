@@ -1,0 +1,3 @@
+.tabs{display:flex;gap:8px;overflow:auto;padding-bottom:8px;margin-bottom:12px;}
+.tab{background:#1d2248;border:none;color:#aeb2cb;padding:8px 14px;border-radius:16px;text-transform:capitalize;}
+.active{background:var(--accent);color:#fff;}

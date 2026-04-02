@@ -1,0 +1,3 @@
+.nav{position:sticky;bottom:0;background:#0e1228;padding:12px;display:flex;justify-content:space-around;border-top:1px solid #282d53;}
+.link{color:#8890b3;font-size:13px;}
+.active{color:#ff6d7f;}

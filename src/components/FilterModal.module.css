@@ -1,0 +1,5 @@
+.backdrop{position:fixed;inset:0;background:#0008;display:grid;place-items:end center;}
+.modal{width:min(560px,100%);background:#181d39;padding:16px;border-radius:16px 16px 0 0;display:grid;gap:8px;}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.modal select,.modal input,.modal button{padding:10px;border-radius:10px;border:none;}
+.modal button{background:var(--accent);color:white;}
