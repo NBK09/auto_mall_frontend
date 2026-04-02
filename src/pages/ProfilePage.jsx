@@ -1,47 +1,68 @@
 import { useEffect, useState } from 'react';
 import AdCard from '../components/AdCard';
-import { editAd, getMyAds } from '../api/adsApi';
-import { mapAdEntity, normalizeAdsResponse } from '../utils/normalize';
+import {
+  archiveAd,
+  getAdForEdit,
+  getMyAds,
+  restoreAd,
+  updateAd,
+} from '../api/adsApi';
+import { normalizeAdsResponse } from '../utils/normalize';
 import { useAuthStore } from '../store/authStore';
 import styles from './ProfilePage.module.css';
 
 const defaultForm = {
-  title: '',
-  description: '',
+  engineId: '',
+  transmissionId: '',
+  driveTypeId: '',
+  cityId: '',
+  year: '',
+  mileage: '',
+  color: '',
+  vin: '',
   price: '',
+  description: '',
 };
 
 function ProfilePage() {
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
   const [myAds, setMyAds] = useState([]);
+  const [status, setStatus] = useState('ACTIVE');
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(defaultForm);
   const [saving, setSaving] = useState(false);
 
+  const loadMyAds = async () => {
+    setLoading(true);
+    try {
+      const payload = await getMyAds(status);
+      const { items } = normalizeAdsResponse(payload);
+      setMyAds(items);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const loadMyAds = async () => {
-      setLoading(true);
-      try {
-        const payload = await getMyAds();
-        const { items } = normalizeAdsResponse(payload);
-        setMyAds(items);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadMyAds();
-  }, []);
+  }, [status]);
 
-  const startEdit = (ad) => {
-    const normalized = mapAdEntity(ad);
-    setEditingId(normalized.id);
+  const startEdit = async (adId) => {
+    const ad = await getAdForEdit(adId);
+    setEditingId(adId);
     setForm({
-      title: normalized.title || '',
-      description: normalized.description || '',
-      price: normalized.price || '',
+      engineId: ad.engineId || '',
+      transmissionId: ad.transmissionId || '',
+      driveTypeId: ad.driveTypeId || '',
+      cityId: ad.cityId || '',
+      year: ad.year || '',
+      mileage: ad.mileage || '',
+      color: ad.color || '',
+      vin: ad.vin || '',
+      price: ad.price || '',
+      description: ad.description || '',
     });
   };
 
@@ -51,44 +72,72 @@ function ProfilePage() {
   };
 
   const saveEdit = async () => {
-    if (!editingId) {
-      return;
-    }
+    if (!editingId) return;
 
     setSaving(true);
     try {
-      const updated = await editAd(editingId, {
-        title: form.title,
+      await updateAd(editingId, {
+        engineId: Number(form.engineId),
+        transmissionId: Number(form.transmissionId),
+        driveTypeId: Number(form.driveTypeId),
+        cityId: Number(form.cityId),
+        year: Number(form.year),
+        mileage: Number(form.mileage),
+        color: form.color,
+        vin: form.vin || null,
+        price: Number(form.price),
         description: form.description,
-        price: Number(form.price || 0),
       });
-      const normalizedUpdated = mapAdEntity(updated);
-      setMyAds((prev) => prev.map((ad) => (ad.id === editingId ? { ...ad, ...normalizedUpdated } : ad)));
       cancelEdit();
+      await loadMyAds();
     } finally {
       setSaving(false);
     }
+  };
+
+  const onArchive = async (adId) => {
+    await archiveAd(adId);
+    await loadMyAds();
+  };
+
+  const onRestore = async (adId) => {
+    await restoreAd(adId);
+    await loadMyAds();
   };
 
   return (
     <section>
       <div className={styles.header}>
         <div>
-          <h2>Профиль</h2>
+          <h2>Мои объявления</h2>
           <p className={styles.name}>{user?.first_name || 'Гость'}</p>
         </div>
         <button type="button" className={styles.logout} onClick={logout}>Выйти</button>
       </div>
 
-      <h3 className={styles.sectionTitle}>Мои объявления</h3>
+      <div className={styles.actions}>
+        <button type="button" className={styles.secondary} onClick={() => setStatus('ACTIVE')}>Активные</button>
+        <button type="button" className={styles.secondary} onClick={() => setStatus('ARCHIVED')}>Архив</button>
+      </div>
+
       {loading && <p className={styles.state}>Загрузка объявлений...</p>}
-      {!loading && !myAds.length && <p className={styles.state}>Вы ещё не разместили ни одного объявления.</p>}
+      {!loading && !myAds.length && <p className={styles.state}>Пока пусто.</p>}
 
       <div className={styles.list}>
         {myAds.map((ad) => (
           <div key={ad.id}>
             <AdCard ad={ad} />
-            <button type="button" className={styles.secondary} onClick={() => startEdit(ad)}>Редактировать</button>
+            <div className={styles.actions}>
+              {status === 'ACTIVE' && (
+                <>
+                  <button type="button" className={styles.secondary} onClick={() => startEdit(ad.id)}>Редактировать</button>
+                  <button type="button" className={styles.secondary} onClick={() => onArchive(ad.id)}>Архивировать</button>
+                </>
+              )}
+              {status === 'ARCHIVED' && (
+                <button type="button" className={styles.secondary} onClick={() => onRestore(ad.id)}>Восстановить</button>
+              )}
+            </div>
           </div>
         ))}
       </div>
@@ -96,33 +145,16 @@ function ProfilePage() {
       {editingId && (
         <div className={styles.editCard}>
           <h4>Редактирование объявления</h4>
-          <label className={styles.row}>
-            Заголовок
-            <input
-              className={styles.input}
-              value={form.title}
-              onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
-            />
-          </label>
-
-          <label className={styles.row}>
-            Цена
-            <input
-              className={styles.input}
-              type="number"
-              value={form.price}
-              onChange={(event) => setForm((prev) => ({ ...prev, price: event.target.value }))}
-            />
-          </label>
-
-          <label className={styles.row}>
-            Описание
-            <textarea
-              className={styles.textarea}
-              value={form.description}
-              onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
-            />
-          </label>
+          {Object.keys(defaultForm).map((key) => (
+            <label className={styles.row} key={key}>
+              {key}
+              <input
+                className={styles.input}
+                value={form[key]}
+                onChange={(event) => setForm((prev) => ({ ...prev, [key]: event.target.value }))}
+              />
+            </label>
+          ))}
 
           <div className={styles.actions}>
             <button type="button" className={styles.primary} onClick={saveEdit} disabled={saving}>
