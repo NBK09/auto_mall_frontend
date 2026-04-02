@@ -1,0 +1,8 @@
+.card{background:linear-gradient(135deg,#1f4a77,#23274d);border-radius:18px;padding:14px;margin-bottom:12px;}
+.top{display:flex;justify-content:space-between;align-items:center;}
+.badge{font-size:12px;color:#ff9db2;}
+.favorite{background:none;border:none;color:#fff;font-size:20px;cursor:pointer;}
+.title{margin:8px 0 4px;}
+.meta{margin:0;color:var(--muted);}
+.price{font-size:24px;color:#ff6c80;margin:12px 0;}
+.link{display:inline-block;background:var(--accent);padding:8px 14px;border-radius:10px;}

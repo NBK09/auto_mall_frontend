@@ -1,0 +1,3 @@
+.list{display:grid;gap:10px;}
+.state{color:var(--muted);text-align:center;}
+.sentinel{height:1px;}
