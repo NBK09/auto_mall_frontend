@@ -1,0 +1,93 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.name {
+  margin: 4px 0 0;
+  color: var(--muted);
+}
+
+.logout {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: #fff;
+  border-radius: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.sectionTitle {
+  margin: 8px 0 12px;
+}
+
+.list {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+}
+
+.editCard {
+  margin-top: 16px;
+  background: var(--bg-soft);
+  border-radius: 12px;
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.row {
+  display: grid;
+  gap: 6px;
+}
+
+.input,
+.textarea {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #131735;
+  color: #fff;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.primary,
+.secondary {
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.state {
+  color: var(--muted);
+}
+
+@media (min-width: 768px) {
+  .list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
