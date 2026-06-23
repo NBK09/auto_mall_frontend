@@ -4,6 +4,11 @@ import { telegramAuth } from '../api/authApi';
 
 const STORAGE_KEY = 'auto_mall_token';
 
+const isAuthError = (error) => {
+  const status = error?.response?.status;
+  return status === 401 || status === 403;
+};
+
 export const useAuthStore = create((set, get) => ({
   user: null,
   token: localStorage.getItem(STORAGE_KEY) || null,
@@ -27,6 +32,11 @@ export const useAuthStore = create((set, get) => ({
     try {
       const user = await getCurrentUser();
       set({ user });
+    } catch (error) {
+      if (isAuthError(error)) {
+        get().logout();
+      }
+      throw error;
     } finally {
       set({ loading: false });
     }
@@ -36,16 +46,23 @@ export const useAuthStore = create((set, get) => ({
       return;
     }
 
-    const payload = await telegramAuth(initData);
-    if (payload?.token) {
-      get().setToken(payload.token);
-    }
-    if (payload?.user) {
-      set({ user: payload.user, isAuthenticated: true });
-    }
+    try {
+      const payload = await telegramAuth(initData);
+      if (payload?.token) {
+        get().setToken(payload.token);
+      }
+      if (payload?.user) {
+        set({ user: payload.user, isAuthenticated: true });
+      }
 
-    if (!payload?.user) {
-      await get().fetchMe();
+      if (!payload?.user) {
+        await get().fetchMe();
+      }
+    } catch (error) {
+      if (isAuthError(error)) {
+        get().logout();
+      }
+      throw error;
     }
   },
   logout: () => {
